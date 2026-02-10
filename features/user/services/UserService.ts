@@ -12,7 +12,11 @@ class UserService {
     prisma = prisma;
 
     async findUser(id: number) {
-        const user = await this.prisma.user.findFirst({
+        if (!id || isNaN(id)) {
+            throw new Error('Invalid user ID');
+        }
+
+        const user = await this.prisma.user.findUnique({
             where: {
                 id: id
             },

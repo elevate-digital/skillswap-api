@@ -13,15 +13,28 @@ class UserController {
     findUser = async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
-            const user = await this.service.findUser(parseInt(id));
+            
+            if (!id) {
+                return res.status(400).json({ message: 'User ID is required' });
+            }
+
+            const userId = parseInt(id);
+            if (isNaN(userId)) {
+                return res.status(400).json({ message: 'Invalid user ID format' });
+            }
+
+            const user = await this.service.findUser(userId);
 
             if (!user) {
                 return res.status(404).json({ message: 'User not found' });
             }
 
             res.status(200).json(user);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error finding user:', error);
+            if (error.message === 'Invalid user ID') {
+                return res.status(400).json({ message: error.message });
+            }
             res.status(500).json({ message: 'Failed to find user' });
         }
     }
