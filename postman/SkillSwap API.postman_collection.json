@@ -1,0 +1,766 @@
+{
+	"info": {
+		"_postman_id": "skillswap-api-collection",
+		"name": "SkillSwap API",
+		"description": "API collection for SkillSwap application - a platform for users to offer or request help on development topics",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Emma Visser\",\n    \"email\": \"emma@example.com\",\n    \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/user/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"register"
+							]
+						},
+						"description": "Register a new user account"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.token) {",
+									"        pm.collectionVariables.set(\"authToken\", jsonData.token);",
+									"        console.log(\"Token saved to collection variable: authToken\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"emma@example.com\",\n    \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/user/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"login"
+							]
+						},
+						"description": "Login with email and password. Returns user data and JWT token. Token is automatically saved to collection variable 'authToken'."
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/user/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "User ID"
+								}
+							]
+						},
+						"description": "Get a user by their ID"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Skill",
+			"item": [
+				{
+					"name": "Get All Skills",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/skill?type=OFFER&completed=false&userId=1&tagIds=1,2&search=React",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"skill"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "OFFER",
+									"description": "Filter by type: OFFER or REQUEST",
+									"disabled": true
+								},
+								{
+									"key": "completed",
+									"value": "false",
+									"description": "Filter by completion status",
+									"disabled": true
+								},
+								{
+									"key": "userId",
+									"value": "1",
+									"description": "Filter by user ID",
+									"disabled": true
+								},
+								{
+									"key": "tagIds",
+									"value": "1,2",
+									"description": "Filter by tag IDs (comma-separated)",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "React",
+									"description": "Search in title and description",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all skills with optional filters"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Skill Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/skill/stats",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"skill",
+								"stats"
+							]
+						},
+						"description": "Get statistics about skills (total offerings, requests, open counts)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Skill by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/skill/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"skill",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Skill ID"
+								}
+							]
+						},
+						"description": "Get a single skill by ID with user, tags, and comments"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Skill (Offer)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"description": "JWT token from login"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"React Hooks Uitleg & Best Practices\",\n    \"description\": \"Ik kan je helpen met useState, useEffect, useContext en custom hooks. Heb meerdere projecten gebouwd met React en kan praktische voorbeelden geven.\",\n    \"type\": \"OFFER\",\n    \"tagIds\": [1, 2, 3]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/skill",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"skill"
+							]
+						},
+						"description": "Create a new skill offering. Requires authentication. Note: user_id is automatically taken from the JWT token."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Skill (Request)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"description": "JWT token from login"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Need help with TypeScript generics\",\n    \"description\": \"I'm struggling with understanding TypeScript generics and would love some guidance from someone experienced.\",\n    \"type\": \"REQUEST\",\n    \"tagIds\": [4, 5]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/skill",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"skill"
+							]
+						},
+						"description": "Create a new help request. Requires authentication. Note: user_id is automatically taken from the JWT token."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Skill",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"description": "JWT token from login"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Updated Title\",\n    \"description\": \"Updated description\",\n    \"completed\": true,\n    \"tagIds\": [1, 2]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/skill/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"skill",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Skill ID"
+								}
+							]
+						},
+						"description": "Update a skill (all fields optional). Requires authentication. You can only update your own skills."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Skill",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"description": "JWT token from login"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/skill/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"skill",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Skill ID"
+								}
+							]
+						},
+						"description": "Delete a skill. Requires authentication. You can only delete your own skills."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Comment",
+			"item": [
+				{
+					"name": "Get All Comments",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/comment?skillId=1&userId=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"comment"
+							],
+							"query": [
+								{
+									"key": "skillId",
+									"value": "1",
+									"description": "Filter by skill ID",
+									"disabled": true
+								},
+								{
+									"key": "userId",
+									"value": "1",
+									"description": "Filter by user ID",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all comments with optional filters"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Comment by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/comment/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"comment",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Comment ID"
+								}
+							]
+						},
+						"description": "Get a single comment by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Comment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"description": "JWT token from login"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"This is really helpful! Can you explain more about custom hooks?\",\n    \"skill_id\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/comment",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"comment"
+							]
+						},
+						"description": "Create a new comment on a skill. Requires authentication. Note: user_id is automatically taken from the JWT token."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Comment",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"description": "JWT token from login"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"Updated comment message\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/comment/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"comment",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Comment ID"
+								}
+							]
+						},
+						"description": "Update a comment. Requires authentication. You can only update your own comments."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Comment",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"description": "JWT token from login"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/comment/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"comment",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Comment ID"
+								}
+							]
+						},
+						"description": "Delete a comment. Requires authentication. You can only delete your own comments."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tag",
+			"item": [
+				{
+					"name": "Get All Tags",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tag",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tag"
+							]
+						},
+						"description": "Get all tags with skill counts"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tag by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tag/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tag",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Tag ID"
+								}
+							]
+						},
+						"description": "Get a single tag with associated skills"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Tag",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"description": "JWT token from login"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"React\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tag",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tag"
+							]
+						},
+						"description": "Create a new tag. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Find or Create Tag",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"description": "JWT token from login"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"JavaScript\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tag/find-or-create",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tag",
+								"find-or-create"
+							]
+						},
+						"description": "Find existing tag or create if not found. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Tag",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"description": "JWT token from login"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"React.js\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tag/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tag",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Tag ID"
+								}
+							]
+						},
+						"description": "Update a tag. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Tag",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"description": "JWT token from login"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tag/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tag",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Tag ID"
+								}
+							]
+						},
+						"description": "Delete a tag. Requires authentication."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string",
+			"description": "JWT token obtained from login endpoint. Automatically set when you run the Login request."
+		}
+	]
+}

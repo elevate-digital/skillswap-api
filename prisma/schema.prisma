@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  email String @unique
+  name String @unique
+  password String
+
+  comments Comment[]
+  skills Skill[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Comment {
+  id Int @id @default(autoincrement())
+  message String
+
+  user_id Int
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  skill_id Int
+  skill Skill @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("comments")
+}
+
+enum SkillType {
+  OFFER
+  REQUEST
+}
+
+model Skill {
+  id Int @id @default(autoincrement())
+  title String
+  description String
+  type SkillType
+  completed Boolean @default(false)
+
+  tags Skill_Tag[]
+  comments Comment[]
+
+  user_id Int
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("skills")
+}
+
+model Tag {
+  id Int @id @default(autoincrement())
+  title String
+
+  skills Skill_Tag[]
+
+  @@map("tags")
+}
+
+model Skill_Tag {
+  id Int @id @default(autoincrement())
+
+  tag_id Int
+  tag Tag @relation(fields: [tag_id], references: [id], onDelete: Cascade)
+
+  skill_id Int
+  skill Skill @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+
+  @@map("skill_tags")
+}
