@@ -15,27 +15,27 @@ class UserController {
             const { id } = req.params;
             
             if (!id) {
-                return res.status(400).json({ message: 'User ID is required' });
+                return res.status(400).json({ message: 'Gebruiker ID is vereist' });
             }
 
             const userId = parseInt(id);
             if (isNaN(userId)) {
-                return res.status(400).json({ message: 'Invalid user ID format' });
+                return res.status(400).json({ message: 'Ongeldig gebruikers ID formaat' });
             }
 
             const user = await this.service.findUser(userId);
 
             if (!user) {
-                return res.status(404).json({ message: 'User not found' });
+                return res.status(404).json({ message: 'Gebruiker niet gevonden' });
             }
 
             res.status(200).json(user);
         } catch (error: any) {
             console.error('Error finding user:', error);
-            if (error.message === 'Invalid user ID') {
+            if (error.message === 'Ongeldig gebruikers ID formaat') {
                 return res.status(400).json({ message: error.message });
             }
-            res.status(500).json({ message: 'Failed to find user' });
+            res.status(500).json({ message: 'Gebruiker niet gevonden' });
         }
     }
 
@@ -46,7 +46,7 @@ class UserController {
             // Validate required fields
             if (!name || !email || !password) {
                 return res.status(400).json({ 
-                    message: 'Missing required fields: name, email, password' 
+                    message: 'Ontbrekende verplichte velden: naam, e-mail, wachtwoord' 
                 });
             }
 
@@ -54,14 +54,14 @@ class UserController {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 return res.status(400).json({ 
-                    message: 'Invalid email format' 
+                    message: 'Ongeldig e-mailformaat' 
                 });
             }
 
             // Validate password length
             if (password.length < 6) {
                 return res.status(400).json({ 
-                    message: 'Password must be at least 6 characters long' 
+                    message: 'Wachtwoord moet minimaal 6 tekens lang zijn' 
                 });
             }
 
@@ -69,7 +69,7 @@ class UserController {
             const existingUserByEmail = await this.service.findByEmail(email);
             if (existingUserByEmail) {
                 return res.status(409).json({ 
-                    message: 'User with this email already exists' 
+                    message: 'Er bestaat al een gebruiker met dit e-mailadres' 
                 });
             }
 
@@ -77,7 +77,7 @@ class UserController {
             const existingUserByName = await this.service.findByName(name);
             if (existingUserByName) {
                 return res.status(409).json({ 
-                    message: 'User with this name already exists' 
+                    message: 'Er bestaat al een gebruiker met deze naam' 
                 });
             }
 
@@ -89,17 +89,17 @@ class UserController {
             });
 
             res.status(201).json({
-                message: 'User registered successfully',
+                message: 'Gebruiker is succesvol geregistreerd',
                 user
             });
         } catch (error: any) {
             if (error.code === 'P2002') {
                 return res.status(409).json({ 
-                    message: 'User with this email or name already exists' 
+                    message: 'Er bestaat al een gebruiker met dit e-mailadres of deze naam' 
                 });
             }
-            console.error('Error registering user:', error);
-            res.status(500).json({ message: 'Failed to register user' });
+            console.error('Error registreren gebruiker:', error);
+            res.status(500).json({ message: 'Registratie van gebruiker mislukt' });
         }
     }
 
@@ -110,7 +110,7 @@ class UserController {
             // Validate required fields
             if (!email || !password) {
                 return res.status(400).json({ 
-                    message: 'Missing required fields: email, password' 
+                    message: 'Ontbrekende verplichte velden: e-mailadres, wachtwoord' 
                 });
             }
 
@@ -119,7 +119,7 @@ class UserController {
 
             if (!user) {
                 return res.status(401).json({ 
-                    message: 'Invalid email or password' 
+                    message: 'Ongeldig e-mailadres of wachtwoord' 
                 });
             }
 
@@ -130,13 +130,13 @@ class UserController {
             });
 
             res.status(200).json({
-                message: 'Login successful',
+                message: 'Inloggen succesvol',
                 user,
                 token
             });
         } catch (error) {
-            console.error('Error logging in:', error);
-            res.status(500).json({ message: 'Failed to login' });
+            console.error('Error tijdens inloggen:', error);
+            res.status(500).json({ message: 'Inloggen mislukt' });
         }
     }
 }
