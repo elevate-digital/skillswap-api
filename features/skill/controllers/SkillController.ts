@@ -65,7 +65,7 @@ class SkillController {
 
     createSkill = async (req: Request, res: Response) => {
         try {
-            const { title, description, type, tagIds } = req.body;
+            const { title, description, type, tags } = req.body;
 
             if (!title || !description || !type) {
                 return res.status(400).json({ 
@@ -87,12 +87,14 @@ class SkillController {
                 });
             }
 
+            const tagLabels = Array.isArray(tags) ? tags.map((t: unknown) => String(t).trim()).filter(Boolean) : undefined;
+
             const skill = await this.service.create({
                 title,
                 description,
                 type: type as SkillType,
                 user_id,
-                tagIds: tagIds ? (Array.isArray(tagIds) ? tagIds.map(id => parseInt(id)) : [parseInt(tagIds)]) : undefined
+                tags: tagLabels
             });
 
             res.status(201).json(skill);
@@ -105,7 +107,7 @@ class SkillController {
     updateSkill = async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
-            const { title, description, type, completed, tagIds } = req.body;
+            const { title, description, type, completed, tags } = req.body;
 
             // Get user ID from authenticated token
             const user_id = req.user?.userId;
@@ -142,10 +144,10 @@ class SkillController {
                 updateData.type = type as SkillType;
             }
             if (completed !== undefined) updateData.completed = completed === true || completed === 'true';
-            if (tagIds !== undefined) {
-                updateData.tagIds = Array.isArray(tagIds) 
-                    ? tagIds.map(id => parseInt(id))
-                    : [parseInt(tagIds)];
+            if (tags !== undefined) {
+                updateData.tags = Array.isArray(tags)
+                    ? tags.map((t: unknown) => String(t).trim()).filter(Boolean)
+                    : [];
             }
 
             const skill = await this.service.update(parseInt(id), updateData);

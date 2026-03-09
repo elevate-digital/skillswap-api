@@ -6,7 +6,7 @@ interface CreateSkillData {
     description: string;
     type: SkillType;
     user_id: number;
-    tagIds?: number[];
+    tags?: string[];
 }
 
 interface UpdateSkillData {
@@ -14,7 +14,7 @@ interface UpdateSkillData {
     description?: string;
     type?: SkillType;
     completed?: boolean;
-    tagIds?: number[];
+    tags?: string[];
 }
 
 class SkillService {
@@ -45,9 +45,7 @@ class SkillService {
         if (filters?.tagIds && filters.tagIds.length > 0) {
             where.tags = {
                 some: {
-                    tag_id: {
-                        in: filters.tagIds
-                    }
+                    tag_id: { in: filters.tagIds }
                 }
             };
         }
@@ -151,16 +149,51 @@ class SkillService {
         };
     }
 
+    /** Resolve tag labels to tag IDs: find existing by name (case-insensitive), create missing tags with original casing. */
+    private async resolveTagLabelsToIds(labels: string[]): Promise<number[]> {
+        if (!labels?.length) return [];
+        const trimmed = labels.map((l) => (l && String(l).trim())).filter(Boolean);
+        const firstByLower = new Map<string, string>();
+        for (const t of trimmed) {
+            const key = t.toLowerCase();
+            if (!firstByLower.has(key)) firstByLower.set(key, t);
+        }
+        const normalized = [...firstByLower.keys()];
+        if (normalized.length === 0) return [];
+
+        const existing = await this.prisma.tag.findMany({
+            where: {
+                OR: normalized.map((n) => ({ title: { equals: n, mode: 'insensitive' as const } }))
+            }
+        });
+        const existingByLower = new Map(existing.map((t) => [t.title.toLowerCase(), t.id]));
+        const ids: number[] = [];
+
+        for (const key of normalized) {
+            let tagId = existingByLower.get(key);
+            if (tagId == null) {
+                const created = await this.prisma.tag.create({
+                    data: { title: firstByLower.get(key)! }
+                });
+                tagId = created.id;
+                existingByLower.set(key, tagId);
+            }
+            ids.push(tagId);
+        }
+        return ids;
+    }
+
     async create(data: CreateSkillData) {
-        const { tagIds, ...skillData } = data;
+        const { tags: tagLabels, ...skillData } = data;
+        const tagIds = tagLabels?.length
+            ? await this.resolveTagLabelsToIds(tagLabels)
+            : undefined;
 
         const skill = await this.prisma.skill.create({
             data: {
                 ...skillData,
                 tags: tagIds && tagIds.length > 0 ? {
-                    create: tagIds.map(tagId => ({
-                        tag_id: tagId
-                    }))
+                    create: tagIds.map((tagId) => ({ tag_id: tagId }))
                 } : undefined
             },
             include: {
@@ -186,19 +219,18 @@ class SkillService {
     }
 
     async update(id: number, data: UpdateSkillData) {
-        const { tagIds, ...updateData } = data;
+        const { tags: tagLabels, ...updateData } = data;
 
-        // If tagIds are provided, replace all existing tags
-        if (tagIds !== undefined) {
-            // Delete existing tag relations
+        if (tagLabels !== undefined) {
             await this.prisma.skill_Tag.deleteMany({
                 where: { skill_id: id }
             });
-
-            // Create new tag relations if provided
+            const tagIds = tagLabels?.length
+                ? await this.resolveTagLabelsToIds(tagLabels)
+                : [];
             if (tagIds.length > 0) {
                 await this.prisma.skill_Tag.createMany({
-                    data: tagIds.map(tagId => ({
+                    data: tagIds.map((tagId) => ({
                         skill_id: id,
                         tag_id: tagId
                     }))
